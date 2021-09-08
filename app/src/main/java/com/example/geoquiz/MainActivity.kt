@@ -1,8 +1,8 @@
 package com.example.geoquiz
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
@@ -20,6 +20,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var trueButton: Button //объявление ф-ции, слушающей кнопку True
     private lateinit var falseButton: Button //объявление ф-ции для кнопки False
     //кнопки появятся в памяти после setContentView(..), поэтому инициализация должна быть после неё
+    private lateinit var cheatButton: Button
     private lateinit var nextButton: ImageButton
     private lateinit var questionTextView: TextView
 
@@ -54,11 +55,11 @@ class MainActivity : AppCompatActivity() {
         trueButton = findViewById(R.id.true_button)
         falseButton = findViewById(R.id.false_button)
         nextButton = findViewById(R.id.next_button)
+        cheatButton = findViewById(R.id.cheat_button)
         questionTextView = findViewById(R.id.question_text_view)
 
         //теперь добавим слушателей на кнопки
-        trueButton.setOnClickListener { view: View ->
-            //через лямбду, по-старинке
+        trueButton.setOnClickListener {
             //Gravity.TOP позволяет вывести toast сверху экрана, с API 30 возможность отключена
             /*val toast = Toast.makeText(this, R.string.correct_toast, Toast.LENGTH_LONG)
             toast.setGravity(Gravity.TOP, 0, 0)
@@ -68,7 +69,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         falseButton.setOnClickListener {
-            //а здесь через контекст
             /*val toast = Toast.makeText(this, R.string.incorrect_toast, Toast.LENGTH_SHORT)
             toast.setGravity(Gravity.TOP, 0, 0)
             toast.show()*/
@@ -84,6 +84,11 @@ class MainActivity : AppCompatActivity() {
             updateQuestion()
             trueButton.isClickable = true
             falseButton.isClickable = true
+        }
+
+        cheatButton.setOnClickListener {
+            val intent = Intent(this, CheatActivity::class.java)
+            startActivity(intent)
         }
 
         //код повторяется с предыдущим, значит нужно его вынести в отедльную функцию через инкапсуляцию
