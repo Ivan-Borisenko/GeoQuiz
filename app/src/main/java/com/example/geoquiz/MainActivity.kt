@@ -1,5 +1,6 @@
 package com.example.geoquiz
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -14,6 +15,7 @@ private const val TAG = "MainActivity" //для сбора логов
 private const val KEY_INDEX = "index" //ключ пары "ключ-значение" для сохранения значения currentIndex
 //индекс для сохранённого состояния экземпляра, сохраняет даже при уничтожении процесса, но жрёт память
 //т.о. ViewModel кэширует много данных (в т.ч. из сети), а сохр.состояние - для номера в этом кэше
+private const val REQUEST_CODE_CHEAT = 0
 
 class MainActivity : AppCompatActivity() {
 
@@ -87,8 +89,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         cheatButton.setOnClickListener {
-            val intent = Intent(this, CheatActivity::class.java)
-            startActivity(intent)
+            //val intent = Intent(this, CheatActivity::class.java)
+            val answerIsTrue = quizViewModel.currentQuestionAnswer
+            val intent = CheatActivity.newIntent(this, answerIsTrue)
+            //startActivity(intent)
+            startActivityForResult(intent, REQUEST_CODE_CHEAT)
         }
 
         //код повторяется с предыдущим, значит нужно его вынести в отедльную функцию через инкапсуляцию
@@ -96,6 +101,7 @@ class MainActivity : AppCompatActivity() {
         questionTextView.setText(questionTextResId)*/
         updateQuestion()
 
+        //добавлено пролистывание назад, isClickable - блокировка кнопки для повторного нажатия
         /*questionTextView.setOnClickListener {
             currentIndex = if (currentIndex > 0) {
                     (currentIndex - 1) % questionBank.size
@@ -106,6 +112,20 @@ class MainActivity : AppCompatActivity() {
             trueButton.isClickable = true
             falseButton.isClickable = true
         }*/
+    }
+
+    override fun onActivityResult(requestCode: Int,
+                                    resultCode: Int,
+                                    data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode != Activity.RESULT_OK) {
+            return
+        }
+
+        if (requestCode == REQUEST_CODE_CHEAT) {
+            quizViewModel.isCheater = data?.getBooleanExtra(EXTRA_ANSWER_SHOW, false) ?: false
+        }
     }
 
     override fun onStart() {
@@ -146,10 +166,15 @@ class MainActivity : AppCompatActivity() {
     private fun checkAnswer(userAnswer: Boolean) {
         //val correctAnswer = questionBank[currentIndex].answer
         val correctAnswer = quizViewModel.currentQuestionAnswer
-        val messageResId = if (userAnswer == correctAnswer) {
+        /*val messageResId = if (userAnswer == correctAnswer) {
             R.string.correct_toast
         } else {
             R.string.incorrect_toast
+        }*/
+        val messageResId = when {
+            quizViewModel.isCheater -> R.string.judgment_toast
+            userAnswer == correctAnswer -> R.string.correct_toast
+            else -> R.string.incorrect_toast
         }
 
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT)
