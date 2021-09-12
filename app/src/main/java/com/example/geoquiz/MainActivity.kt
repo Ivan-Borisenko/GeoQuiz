@@ -1,7 +1,9 @@
 package com.example.geoquiz
 
 import android.app.Activity
+import android.app.ActivityOptions
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -12,15 +14,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
 
 private const val TAG = "MainActivity" //для сбора логов
-private const val KEY_INDEX = "index" //ключ пары "ключ-значение" для сохранения значения currentIndex
+private const val KEY_INDEX = "index"
+//ключ из пары "ключ-значение" для сохранения значения currentIndex
+
 //индекс для сохранённого состояния экземпляра, сохраняет даже при уничтожении процесса, но жрёт память
-//т.о. ViewModel кэширует много данных (в т.ч. из сети), а сохр.состояние - для номера в этом кэше
+//т.о. ViewModel может кэшируетовать много данных (в т.ч. из сети), а сохр.состояние - для номера в этом кэше
 private const val REQUEST_CODE_CHEAT = 0
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var trueButton: Button //объявление ф-ции, слушающей кнопку True
     private lateinit var falseButton: Button //объявление ф-ции для кнопки False
+
     //кнопки появятся в памяти после setContentView(..), поэтому инициализация должна быть после неё
     private lateinit var cheatButton: Button
     private lateinit var nextButton: ImageButton
@@ -47,7 +52,7 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onCreate(Bundle?) called") //отметка для лога
         setContentView(R.layout.activity_main)
 
-        val currentIndex = savedInstanceState?.getInt(KEY_INDEX, 0)?: 0
+        val currentIndex = savedInstanceState?.getInt(KEY_INDEX, 0) ?: 0
         quizViewModel.currentIndex = currentIndex
 
         /*val provider: ViewModelProvider = ViewModelProviders.of(this)
@@ -92,8 +97,14 @@ class MainActivity : AppCompatActivity() {
             //val intent = Intent(this, CheatActivity::class.java)
             val answerIsTrue = quizViewModel.currentQuestionAnswer
             val intent = CheatActivity.newIntent(this, answerIsTrue)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val options =
+                    ActivityOptions.makeClipRevealAnimation(it, 0, 0, it.width, it.height)
+                startActivityForResult(intent, REQUEST_CODE_CHEAT, options.toBundle())
+            } else {
+                startActivityForResult(intent, REQUEST_CODE_CHEAT)
+            }
             //startActivity(intent)
-            startActivityForResult(intent, REQUEST_CODE_CHEAT)
         }
 
         //код повторяется с предыдущим, значит нужно его вынести в отедльную функцию через инкапсуляцию
@@ -114,9 +125,11 @@ class MainActivity : AppCompatActivity() {
         }*/
     }
 
-    override fun onActivityResult(requestCode: Int,
-                                    resultCode: Int,
-                                    data: Intent?) {
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (resultCode != Activity.RESULT_OK) {
@@ -132,10 +145,12 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         Log.d(TAG, "onStart() called")
     }
+
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume() called")
     }
+
     override fun onPause() {
         super.onPause()
         Log.d(TAG, "onPause() called")
@@ -151,6 +166,7 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
         Log.d(TAG, "onStop() called")
     }
+
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy() called")
