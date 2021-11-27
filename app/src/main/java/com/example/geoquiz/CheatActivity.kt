@@ -35,6 +35,7 @@ class CheatActivity : AppCompatActivity() {
         }
     }
 
+    //комит функционала
     private fun setAnswerShownResult(isAnswerShown: Boolean) {
         val data = Intent().apply {
             putExtra(EXTRA_ANSWER_SHOW, isAnswerShown)
